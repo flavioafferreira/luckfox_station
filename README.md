@@ -2,7 +2,7 @@
 
 This repository contains a **Linux-based LoRaWAN station** written in C, targeting Luckfox boards and similar embedded Linux platforms.  
 The goal of this project is to provide a simple, hackable LoRaWAN station that can be integrated into custom gateways, test setups, or educational projects.
-
+The board used in this project is the model Luckfox Pico Pi A W --> https://wiki.luckfox.com/Luckfox-Pico-Pi
 ---
 
 ## Features
@@ -38,7 +38,7 @@ The goal of this project is to provide a simple, hackable LoRaWAN station that c
 
 To build and run this project you typically need:
 
-- A **Linux** environment (PC or cross-compilation toolchain)
+- A **Linux** environment (PC or cross-compilation toolchain). I used the WSL Ubuntu under Windows.  
 - A **C compiler**, such as `gcc` or an appropriate cross-compiler for the Luckfox board
 - `make`
 - A Luckfox (or similar) embedded Linux board connected to:
