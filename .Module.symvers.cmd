@@ -1,0 +1,1 @@
+cmd_/home/flavio/drivers/lora_station/Module.symvers := sed 's/\.ko$$/\.o/' /home/flavio/drivers/lora_station/modules.order | scripts/mod/modpost     -o /home/flavio/drivers/lora_station/Module.symvers -e    -T -
