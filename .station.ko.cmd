@@ -1,1 +1,0 @@
-cmd_/home/flavio/drivers/lora_station/station.ko := arm-rockchip830-linux-uclibcgnueabihf-ld -r -EL -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/flavio/drivers/lora_station/station.ko /home/flavio/drivers/lora_station/station.o /home/flavio/drivers/lora_station/station.mod.o;  true
