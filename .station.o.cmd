@@ -552,23 +552,77 @@ deps_/home/flavio/drivers/lora_station/station.o := \
     $(wildcard include/config/have/mod/arch/specific.h) \
     $(wildcard include/config/modules/use/elf/rel.h) \
     $(wildcard include/config/modules/use/elf/rela.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/gpio.h \
-    $(wildcard include/config/gpiolib.h) \
-    $(wildcard include/config/arch/have/custom/gpio/h.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/gpio.h \
-    $(wildcard include/config/arch/nr/gpio.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/asm-generic/gpio.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/gpio/driver.h \
-    $(wildcard include/config/irq/domain/hierarchy.h) \
-    $(wildcard include/config/gpio/generic.h) \
-    $(wildcard include/config/gpiolib/irqchip.h) \
-    $(wildcard include/config/of/gpio.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/i2c.h \
+    $(wildcard include/config/i2c.h) \
+    $(wildcard include/config/i2c/slave.h) \
+    $(wildcard include/config/i2c/boardinfo.h) \
+    $(wildcard include/config/i2c/mux.h) \
     $(wildcard include/config/of.h) \
-    $(wildcard include/config/pinctrl.h) \
+    $(wildcard include/config/acpi.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/acpi.h \
+    $(wildcard include/config/acpi/debugger.h) \
+    $(wildcard include/config/x86.h) \
+    $(wildcard include/config/acpi/processor/cstate.h) \
+    $(wildcard include/config/acpi/hotplug/cpu.h) \
+    $(wildcard include/config/acpi/hotplug/ioapic.h) \
+    $(wildcard include/config/x86/io/apic.h) \
+    $(wildcard include/config/pci.h) \
+    $(wildcard include/config/acpi/wmi.h) \
+    $(wildcard include/config/acpi/numa.h) \
+    $(wildcard include/config/hibernation.h) \
+    $(wildcard include/config/acpi/hotplug/memory.h) \
+    $(wildcard include/config/acpi/container.h) \
+    $(wildcard include/config/acpi/gtdt.h) \
+    $(wildcard include/config/pm.h) \
+    $(wildcard include/config/gpiolib.h) \
+    $(wildcard include/config/acpi/table/upgrade.h) \
+    $(wildcard include/config/acpi/watchdog.h) \
+    $(wildcard include/config/acpi/spcr/table.h) \
+    $(wildcard include/config/acpi/generic/gsi.h) \
+    $(wildcard include/config/acpi/lpit.h) \
+    $(wildcard include/config/acpi/pptt.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/ioport.h \
+    $(wildcard include/config/io/strict/devmem.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqdomain.h \
+    $(wildcard include/config/irq/domain/hierarchy.h) \
+    $(wildcard include/config/generic/irq/debugfs.h) \
+    $(wildcard include/config/irq/domain.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqhandler.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/of.h \
+    $(wildcard include/config/of/dynamic.h) \
+    $(wildcard include/config/sparc.h) \
+    $(wildcard include/config/of/promtree.h) \
+    $(wildcard include/config/of/kobj.h) \
+    $(wildcard include/config/of/numa.h) \
+    $(wildcard include/config/of/overlay.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/mod_devicetable.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/uuid.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/uapi/linux/uuid.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/property.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/fwnode.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/resource_ext.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/slab.h \
+    $(wildcard include/config/debug/slab.h) \
+    $(wildcard include/config/failslab.h) \
+    $(wildcard include/config/memcg/kmem.h) \
+    $(wildcard include/config/kasan.h) \
+    $(wildcard include/config/have/hardened/usercopy/allocator.h) \
+    $(wildcard include/config/rockchip/mini/kernel.h) \
+    $(wildcard include/config/slab.h) \
+    $(wildcard include/config/slub.h) \
+    $(wildcard include/config/slob.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/overflow.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/percpu-refcount.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/kasan.h \
+    $(wildcard include/config/kasan/stack.h) \
+    $(wildcard include/config/kasan/vmalloc.h) \
+    $(wildcard include/config/kasan/inline.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/kasan-enabled.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/device.h \
     $(wildcard include/config/debug/devres.h) \
     $(wildcard include/config/energy/model.h) \
     $(wildcard include/config/generic/msi/irq/domain.h) \
+    $(wildcard include/config/pinctrl.h) \
     $(wildcard include/config/generic/msi/irq.h) \
     $(wildcard include/config/dma/ops.h) \
     $(wildcard include/config/dma/declare/coherent.h) \
@@ -701,17 +755,12 @@ deps_/home/flavio/drivers/lora_station/station.o := \
     $(wildcard include/config/sched/debug.h) \
     $(wildcard include/config/sched/mc.h) \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/sched/idle.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/ioport.h \
-    $(wildcard include/config/io/strict/devmem.h) \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/klist.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pm.h \
     $(wildcard include/config/vt/console/sleep.h) \
-    $(wildcard include/config/pm.h) \
     $(wildcard include/config/pm/clk.h) \
     $(wildcard include/config/pm/generic/domains.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/overflow.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/device/bus.h \
-    $(wildcard include/config/acpi.h) \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/device/class.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/device/driver.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/device.h \
@@ -719,82 +768,40 @@ deps_/home/flavio/drivers/lora_station/station.o := \
     $(wildcard include/config/arm/dma/use/iommu.h) \
     $(wildcard include/config/arch/omap.h) \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pm_wakeup.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irq.h \
-    $(wildcard include/config/generic/irq/effective/aff/mask.h) \
-    $(wildcard include/config/generic/irq/ipi.h) \
-    $(wildcard include/config/generic/irq/migration.h) \
-    $(wildcard include/config/generic/pending/irq.h) \
-    $(wildcard include/config/hardirqs/sw/resend.h) \
-    $(wildcard include/config/generic/irq/legacy/alloc/hwirq.h) \
-    $(wildcard include/config/generic/irq/legacy.h) \
-    $(wildcard include/config/generic/irq/multi/handler.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqhandler.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqreturn.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqnr.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/uapi/linux/irqnr.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/io.h \
-    $(wildcard include/config/have/arch/huge/vmap.h) \
-    $(wildcard include/config/has/ioport/map.h) \
-    $(wildcard include/config/pci.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/io.h \
-    $(wildcard include/config/need/mach/io/h.h) \
-    $(wildcard include/config/pcmcia/soc/common.h) \
-    $(wildcard include/config/isa.h) \
-    $(wildcard include/config/pccard.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/asm-generic/pci_iomap.h \
-    $(wildcard include/config/no/generic/pci/ioport/map.h) \
-    $(wildcard include/config/generic/pci/iomap.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/asm-generic/io.h \
-    $(wildcard include/config/generic/iomap.h) \
-    $(wildcard include/config/generic/ioremap.h) \
-    $(wildcard include/config/virt/to/bus.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/logic_pio.h \
-    $(wildcard include/config/indirect/pio.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/fwnode.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/vmalloc.h \
-    $(wildcard include/config/kasan/vmalloc.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/vmalloc.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/slab.h \
-    $(wildcard include/config/debug/slab.h) \
-    $(wildcard include/config/failslab.h) \
-    $(wildcard include/config/memcg/kmem.h) \
-    $(wildcard include/config/kasan.h) \
-    $(wildcard include/config/have/hardened/usercopy/allocator.h) \
-    $(wildcard include/config/rockchip/mini/kernel.h) \
-    $(wildcard include/config/slab.h) \
-    $(wildcard include/config/slub.h) \
-    $(wildcard include/config/slob.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/percpu-refcount.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/kasan.h \
-    $(wildcard include/config/kasan/stack.h) \
-    $(wildcard include/config/kasan/inline.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/kasan-enabled.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/irq.h \
-    $(wildcard include/config/sparse/irq.h) \
-  arch/arm/include/generated/asm/irq_regs.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/asm-generic/irq_regs.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqdesc.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acpi.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/acenv.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/acgcc.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/aclinux.h \
+    $(wildcard include/config/acpi/reduced/hardware/only.h) \
+    $(wildcard include/config/acpi/debug.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/ctype.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acnames.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/actypes.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acexcep.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/actbl.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/actbl1.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/actbl2.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/actbl3.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acrestyp.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/acenvex.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/aclinuxex.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/platform/acgccex.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acoutput.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acpiosxf.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acpixf.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acconfig.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acbuffer.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/acpi/acpi_numa.h \
+    $(wildcard include/config/acpi/hmat.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/rtmutex.h \
+    $(wildcard include/config/debug/rt/mutexes.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/uapi/linux/i2c.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/kthread.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/delay.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/delay.h \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/proc_fs.h \
     $(wildcard include/config/proc/fs.h) \
-    $(wildcard include/config/generic/irq/debugfs.h) \
-    $(wildcard include/config/handle/domain/irq.h) \
-    $(wildcard include/config/irq/domain.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/include/asm/hw_irq.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqchip/chained_irq.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/irqdomain.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/of.h \
-    $(wildcard include/config/of/dynamic.h) \
-    $(wildcard include/config/sparc.h) \
-    $(wildcard include/config/of/promtree.h) \
-    $(wildcard include/config/of/kobj.h) \
-    $(wildcard include/config/of/numa.h) \
-    $(wildcard include/config/of/overlay.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/mod_devicetable.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/uuid.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/uapi/linux/uuid.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/property.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/pinctrl.h \
-    $(wildcard include/config/generic/pinconf.h) \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/seq_file.h \
+    $(wildcard include/config/proc/pid/arch/status.h) \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/fs.h \
     $(wildcard include/config/read/only/thp/for/fs.h) \
     $(wildcard include/config/fs/posix/acl.h) \
@@ -897,13 +904,7 @@ deps_/home/flavio/drivers/lora_station/station.o := \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/projid.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/uapi/linux/quota.h \
   /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/nfs_fs_i.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/pinctrl-state.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/devinfo.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/consumer.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/pinconf-generic.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/pinctrl/machine.h \
-  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/gpio/consumer.h \
-    $(wildcard include/config/gpio/sysfs.h) \
+  /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/include/linux/seq_file.h \
 
 /home/flavio/drivers/lora_station/station.o: $(deps_/home/flavio/drivers/lora_station/station.o)
 

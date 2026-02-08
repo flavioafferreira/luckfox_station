@@ -25,3 +25,5 @@ MODULE_INFO(retpoline, "Y");
 
 MODULE_INFO(depends, "");
 
+
+MODULE_INFO(srcversion, "3870691E8986D790E59A496");
