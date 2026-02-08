@@ -16,7 +16,6 @@ DEVICE TREE
 #include <linux/seq_file.h>
 
 
-
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Flavio");
 MODULE_DESCRIPTION("MPU6050 I2C kthread");
