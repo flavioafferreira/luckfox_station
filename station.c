@@ -1,8 +1,10 @@
-/*
-DEVICE TREE
-/home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/boot/dts/rv1106g-evb1-v10.dts
-/home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/boot/dts/rv1106-pinctrl.dtsi
-*/
+/**
+ * @readme dev_tree
+ * DEVICE TREE
+ * /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/boot/dts/rv1106g-evb1-v10.dts
+ * /home/flavio/sdk/luckfox-pico/sysdrv/source/kernel/arch/arm/boot/dts/rv1106-pinctrl.dtsi
+ */
+
 
 #include <linux/module.h>
 #include <linux/init.h>

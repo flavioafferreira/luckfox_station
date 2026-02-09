@@ -1,13 +1,12 @@
 # Luckfox LoRaWAN Station
 
 This repository contains a **Linux-based LoRaWAN station** written in C as module you can install using insmod like a driver, targeting Luckfox boards and similar embedded Linux platforms.  
-The goal of this project is to provide a simple, hackable LoRaWAN station that can be integrated into custom gateways, test setups, or educational projects. Borned with a giroscopic
-sensor and it's being developed.
+The goal of this project is to provide a simple, hackable LoRaWAN station that can be integrated into custom gateways, test setups, or educational projects. Borned with a giroscopic sensor and it's being developed.
 The board used in this project is the model Luckfox Pico Pi A W 
 
 ## About the Board
 
-LUCKFOX Pico Pi A W is a Linux development board designed for developers, based on LUCKFOX Core1106 module, which combines powerful arithmetic and rich scalability. Its 1TOPS AI power and 8GB eMMC storage can easily handle intelligent coding, image analysis (supporting 5MP ISP3.2) and edge computing tasks, while the 16-bit 256MB DDR3L memory ensures smooth multi-tasking.
+LUCKFOX Pico Pi A W is a very low cost, about 50 euro, Linux development board designed for developers, based on LUCKFOX Core1106 module (Rockchip RV1106G EVB1 V10 Board), which combines powerful arithmetic and rich scalability. Its 1TOPS AI power and 8GB eMMC storage can easily handle intelligent coding, image analysis (supporting 5MP ISP3.2) and edge computing tasks, while the 16-bit 256MB DDR3L memory ensures smooth multi-tasking.
 
 The development board provides full-featured interfaces including MIPI CSI camera, GPIO, UART, SPI, I2C and USB-C/A. With the dip switches, users can flexibly switch between 4G M.2 or USB-A interfaces, and utilize the on-board PoE interface to achieve Power over Ethernet, adapting to scenarios such as industrial IoT and smart home.
 
@@ -103,6 +102,7 @@ Possible options (depending on implementation):
 - `-h` – help  
 
 ---
+
 
 ## Configuration
 
