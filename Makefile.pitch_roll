@@ -1,0 +1,16 @@
+# ---- Configurações ----
+CROSS_COMPILE := arm-rockchip830-linux-uclibcgnueabihf-
+CC := $(CROSS_COMPILE)gcc
+CFLAGS := -O2 -Wall -lm
+TARGET := pitch_roll
+SRC := pitch_roll.c
+
+# ---- Regras ----
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(SRC) -o $(TARGET) -lm
+
+clean:
+	rm -f $(TARGET)
+
