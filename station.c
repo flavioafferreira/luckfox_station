@@ -24,7 +24,7 @@
 #include <linux/math64.h>
 #include <linux/kernel.h>
 
-
+#include "fifo.h"
 
 
 MODULE_LICENSE("GPL");
@@ -52,8 +52,7 @@ static struct proc_dir_entry *mpu6050_proc_entry;
 
 //converte os valores
 
-static void split_fixed(long val, long *int_part, long *frac_part)
-{
+static void split_fixed(long val, long *int_part, long *frac_part){
     long sign = 1;
     long absval = val;
 
@@ -74,8 +73,7 @@ static void mpu6050_convert(
     int16_t temp_raw,
     long *ax_ms2, long *ay_ms2, long *az_ms2,
     long *gx_dps, long *gy_dps, long *gz_dps,
-    long *temp_mC)
-{
+    long *temp_mC){
     /* ----- temperatura (°C em milicelsius) ----- */
     *temp_mC = (long)temp_raw * 1000 / 340 + 36530;
 
@@ -194,31 +192,8 @@ static int mpu6050_hw_init(void)
     return ret;
 }
 
-
-
-
-// Lê acelerômetro e giroscópio de uma vez (14 bytes a partir de 0x3B)
-   /*
-     * Layout dos 14 bytes a partir de 0x3B:
-     *  0: ACCEL_XOUT_H
-     *  1: ACCEL_XOUT_L
-     *  2: ACCEL_YOUT_H
-     *  3: ACCEL_YOUT_L
-     *  4: ACCEL_ZOUT_H
-     *  5: ACCEL_ZOUT_L
-     *  6: TEMP_OUT_H
-     *  7: TEMP_OUT_L
-     *  8: GYRO_XOUT_H
-     *  9: GYRO_XOUT_L
-     * 10: GYRO_YOUT_H
-     * 11: GYRO_YOUT_L
-     * 12: GYRO_ZOUT_H
-     * 13: GYRO_ZOUT_L
-     */
-
 static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
-                                   int16_t *gx, int16_t *gy, int16_t *gz,int16_t *temperature )
-{
+                                   int16_t *gx, int16_t *gy, int16_t *gz,int16_t *temperature ){
     int ret;
     u8 buf[14];
 
@@ -250,8 +225,6 @@ static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
 // --------------------------------------------------------------------
 // Thread de leitura
 // --------------------------------------------------------------------
-
-
 
 static int mpu6050_thread_fn(void *data){
     int16_t ax, ay, az, gx, gy, gz,temperature;
@@ -296,9 +269,6 @@ static int mpu6050_thread_fn(void *data){
     pr_info("mpu6050_thread: finalizado\n");
     return 0;
 }
-
-
-
 
 // --------------------------------------------------------------------
 // Init / Exit do módulo
