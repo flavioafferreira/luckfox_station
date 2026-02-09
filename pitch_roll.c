@@ -35,9 +35,9 @@ int main(void)
     float ax, ay, az;
     float pitch, roll;
 
-    f = fopen("/proc/mpu6050_fifo", "r");
+    f = fopen("/proc/mpu6050", "r");
     if (!f) {
-        perror("fopen /proc/mpu6050_fifo");
+        perror("fopen /proc/mpu6050");
         return 1;
     }
 
