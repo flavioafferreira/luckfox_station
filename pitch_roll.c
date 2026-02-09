@@ -35,9 +35,9 @@ int main(void)
     float ax, ay, az;
     float pitch, roll;
 
-    f = fopen("/proc/mpu6050", "r");
+    f = fopen("/proc/mpu6050_fifo", "r");
     if (!f) {
-        perror("fopen /proc/mpu6050");
+        perror("fopen /proc/mpu6050_fifo");
         return 1;
     }
 
@@ -46,7 +46,7 @@ int main(void)
        O fscanf com "%f %f %f" funciona porque ele para nos espaços.
     */
     if (fscanf(f, "ACC: %f %f %f", &ax, &ay, &az) != 3) {
-        fprintf(stderr, "Erro ao ler ACC de /proc/mpu6050\n");
+        fprintf(stderr, "Erro ao ler ACC de /proc/mpu6050_fifo\n");
         fclose(f);
         return 1;
     }

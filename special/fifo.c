@@ -60,3 +60,15 @@ int mpu_fifo_pop(struct mpu_sample *s)
 
     return n ? 0 : -EAGAIN;
 }
+
+
+int mpu_fifo_pop_wait(struct mpu_sample *s)
+{
+    int ret;
+
+    ret = wait_event_interruptible(mpu_wq, !kfifo_is_empty(&mpu_fifo));
+    if (ret)
+        return ret;
+
+    return mpu_fifo_pop(s);
+}

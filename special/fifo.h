@@ -11,5 +11,11 @@ struct mpu_sample {
     s32 temp_mC;    // milicelsius
 };
 
+int mpu_fifo_init(void);
+void mpu_fifo_exit(void);
+int mpu_fifo_push(const struct mpu_sample *s);
+int mpu_fifo_pop(struct mpu_sample *s);
+int mpu_fifo_pop_wait(struct mpu_sample *s);
+
 
 #endif /* _LORA_STATION_FIFO_H */

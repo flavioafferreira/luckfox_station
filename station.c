@@ -16,6 +16,7 @@
 
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/uaccess.h>
 
 #include <linux/sched.h>
 #include <linux/sched/rt.h>
@@ -23,6 +24,7 @@
 
 #include <linux/math64.h>
 #include <linux/kernel.h>
+#include <linux/ktime.h>
 
 #include "special/fifo.h"
 
@@ -49,6 +51,7 @@ static int16_t last_gx, last_gy, last_gz;
 static int16_t last_temp;
 
 static struct proc_dir_entry *mpu6050_proc_entry;
+static struct proc_dir_entry *mpu6050_fifo_proc_entry;
 
 //converte os valores
 
@@ -161,6 +164,52 @@ static const struct proc_ops mpu6050_proc_ops = {
     .proc_release = single_release,
 };
 
+static ssize_t mpu6050_fifo_read(struct file *file, char __user *buf,
+                                 size_t count, loff_t *ppos)
+{
+    struct mpu_sample sample;
+    long ax, ay, az;
+    long gx, gy, gz;
+    long t;
+    long ax_i, ax_f;
+    long ay_i, ay_f;
+    long az_i, az_f;
+    char out[128];
+    int ret;
+    int len;
+
+    if (*ppos > 0)
+        return 0;
+
+    ret = mpu_fifo_pop_wait(&sample);
+    if (ret)
+        return ret;
+
+    mpu6050_convert(sample.ax, sample.ay, sample.az,
+                    sample.gx, sample.gy, sample.gz,
+                    (int16_t)sample.temp_mC,
+                    &ax, &ay, &az,
+                    &gx, &gy, &gz,
+                    &t);
+
+    split_fixed(ax, &ax_i, &ax_f);
+    split_fixed(ay, &ay_i, &ay_f);
+    split_fixed(az, &az_i, &az_f);
+
+    len = scnprintf(out, sizeof(out),
+                    "ACC: %ld.%03ld %ld.%03ld %ld.%03ld m/s2\n",
+                    ax_i, ax_f,
+                    ay_i, ay_f,
+                    az_i, az_f);
+
+    return simple_read_from_buffer(buf, count, ppos, out, len);
+}
+
+static const struct proc_ops mpu6050_fifo_proc_ops = {
+    .proc_read  = mpu6050_fifo_read,
+    .proc_lseek = default_llseek,
+};
+
 // --------------------------------------------------------------------
 // I2C / MPU6050
 // --------------------------------------------------------------------
@@ -230,6 +279,8 @@ static int mpu6050_thread_fn(void *data){
     int16_t ax, ay, az, gx, gy, gz,temperature;
     int ret;
     int local_interval;
+    struct mpu_sample sample;
+    long temp_mC;
 
     pr_info("mpu6050_thread: iniciado (interval_ms=%d)\n", interval_ms);
 
@@ -256,6 +307,19 @@ static int mpu6050_thread_fn(void *data){
         last_gy = gy;
         last_gz = gz;
         last_temp = temperature;
+
+        temp_mC = (long)temperature * 1000 / 340 + 36530;
+        sample.ts_ns = ktime_get_ns();
+        sample.ax = ax;
+        sample.ay = ay;
+        sample.az = az;
+        sample.gx = gx;
+        sample.gy = gy;
+        sample.gz = gz;
+        sample.temp_mC = (s32)temp_mC;
+        ret = mpu_fifo_push(&sample);
+        if (ret)
+            pr_warn("mpu6050_thread: fifo cheio, amostra descartada\n");
 
         // Evita intervalo zero ou negativo
         local_interval = (interval_ms > 0) ? interval_ms : 100;
@@ -310,11 +374,20 @@ static int __init mpu6050_module_init(void)
         return ret;
     }
 
+    ret = mpu_fifo_init();
+    if (ret < 0) {
+        pr_err("mpu6050: falha ao inicializar fifo\n");
+        i2c_unregister_device(mpu_client);
+        mpu_client = NULL;
+        return ret;
+    }
+
     // Cria thread de leitura
     mpu_thread = kthread_run(mpu6050_thread_fn, NULL, "mpu6050_thread");
     if (IS_ERR(mpu_thread)) {
         ret = PTR_ERR(mpu_thread);
         pr_err("mpu6050: falha ao criar thread, ret=%d\n", ret);
+        mpu_fifo_exit();
         i2c_unregister_device(mpu_client);
         mpu_client = NULL;
         return ret;
@@ -340,6 +413,21 @@ static int __init mpu6050_module_init(void)
         // se quiser fazer tudo certinho, desfaz o que já foi feito:
         kthread_stop(mpu_thread);
         mpu_thread = NULL;
+        mpu_fifo_exit();
+        i2c_unregister_device(mpu_client);
+        mpu_client = NULL;
+        return -ENOMEM;
+    }
+
+    mpu6050_fifo_proc_entry = proc_create("mpu6050_fifo", 0444, NULL,
+                                          &mpu6050_fifo_proc_ops);
+    if (!mpu6050_fifo_proc_entry) {
+        pr_err("mpu6050: falha ao criar entrada /proc/mpu6050_fifo\n");
+        proc_remove(mpu6050_proc_entry);
+        mpu6050_proc_entry = NULL;
+        kthread_stop(mpu_thread);
+        mpu_thread = NULL;
+        mpu_fifo_exit();
         i2c_unregister_device(mpu_client);
         mpu_client = NULL;
         return -ENOMEM;
@@ -362,12 +450,18 @@ static void __exit mpu6050_module_exit(void)
         proc_remove(mpu6050_proc_entry);
         mpu6050_proc_entry = NULL;
     }
+    if (mpu6050_fifo_proc_entry) {
+        proc_remove(mpu6050_fifo_proc_entry);
+        mpu6050_fifo_proc_entry = NULL;
+    }
 
     // Para thread
     if (mpu_thread) {
         kthread_stop(mpu_thread);
         mpu_thread = NULL;
     }
+
+    mpu_fifo_exit();
 
     // Libera dispositivo I2C
     if (mpu_client) {
