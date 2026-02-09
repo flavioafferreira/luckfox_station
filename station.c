@@ -17,6 +17,15 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 
+#include <linux/sched.h>
+#include <linux/sched/rt.h>
+#include <uapi/linux/sched/types.h>  // para struct sched_param
+
+#include <linux/math64.h>
+#include <linux/kernel.h>
+
+
+
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Flavio");
@@ -33,17 +42,112 @@ module_param(interval_ms, int, 0644);
 MODULE_PARM_DESC(interval_ms, "Intervalo entre leituras em ms");
 
 
-//callback
+//callback put into /proc/mpu6050
 
 static int16_t last_ax, last_ay, last_az;
 static int16_t last_gx, last_gy, last_gz;
+static int16_t last_temp;
+
 static struct proc_dir_entry *mpu6050_proc_entry;
+
+//converte os valores
+
+static void split_fixed(long val, long *int_part, long *frac_part)
+{
+    long sign = 1;
+    long absval = val;
+
+    if (absval < 0) {
+        sign = -1;
+        absval = -absval;      // valor absoluto
+    }
+
+    *int_part  = (absval / 1000) * sign;  // parte inteira com sinal
+    *frac_part =  absval % 1000;          // fração sempre positiva
+}
+
+
+
+static void mpu6050_convert(
+    int16_t ax_raw, int16_t ay_raw, int16_t az_raw,
+    int16_t gx_raw, int16_t gy_raw, int16_t gz_raw,
+    int16_t temp_raw,
+    long *ax_ms2, long *ay_ms2, long *az_ms2,
+    long *gx_dps, long *gy_dps, long *gz_dps,
+    long *temp_mC)
+{
+    /* ----- temperatura (°C em milicelsius) ----- */
+    *temp_mC = (long)temp_raw * 1000 / 340 + 36530;
+
+    /* ----- acelerômetro: mm/s² (depois divida por 1000 para obter m/s²) ----- */
+    *ax_ms2 = (long)ax_raw * 9807 / 16384;
+    *ay_ms2 = (long)ay_raw * 9807 / 16384;
+    *az_ms2 = (long)az_raw * 9807 / 16384;
+
+    /* ----- giroscópio: mdps (milideg/s) ----- */
+    *gx_dps = (long)gx_raw * 1000 / 131;
+    *gy_dps = (long)gy_raw * 1000 / 131;
+    *gz_dps = (long)gz_raw * 1000 / 131;
+}
+
 
 static int mpu6050_proc_show(struct seq_file *m, void *v)
 {
-    // Aqui você imprime o que quiser no "arquivo"
-    seq_printf(m, "ACC: %6d %6d %6d\n", last_ax, last_ay, last_az);
-    seq_printf(m, "GYR: %6d %6d %6d\n", last_gx, last_gy, last_gz);
+    long ax, ay, az;
+    long gx, gy, gz;
+    long t;
+
+    long ax_i, ax_f;
+    long ay_i, ay_f;
+    long az_i, az_f;
+    long gx_i, gx_f;
+    long gy_i, gy_f;
+    long gz_i, gz_f;
+    long t_i,  t_f;
+
+    u_long acc_mag;       // módulo da aceleração em mm/s²
+    long accm_i, accm_f;
+
+    mpu6050_convert(last_ax,last_ay,last_az,last_gx,last_gy,last_gz,last_temp,&ax, &ay, &az,&gx, &gy, &gz,&t);
+
+ /* Quebra cada valor em inteiro + fração (3 casas decimais) */
+    split_fixed(ax, &ax_i, &ax_f);
+    split_fixed(ay, &ay_i, &ay_f);
+    split_fixed(az, &az_i, &az_f);
+
+    split_fixed(gx, &gx_i, &gx_f);
+    split_fixed(gy, &gy_i, &gy_f);
+    split_fixed(gz, &gz_i, &gz_f);
+
+    split_fixed(t,  &t_i,  &t_f);
+
+    acc_mag = int_sqrt(
+                (u64)ax * ax +
+                (u64)ay * ay +
+                (u64)az * az);
+
+    split_fixed(acc_mag, &accm_i, &accm_f);
+
+    seq_printf(m,
+        "ACC: %ld.%03ld %ld.%03ld %ld.%03ld m/s2  "
+        "MAG: %ld.%03ld m/s2  "
+        "GYR: %ld.%03ld %ld.%03ld %ld.%03ld dps  "
+        "TEMP: %ld.%03ld C\n",
+        ax_i, ax_f,
+        ay_i, ay_f,
+        az_i, az_f,
+        accm_i, accm_f,
+        gx_i, gx_f,
+        gy_i, gy_f,
+        gz_i, gz_f,
+        t_i,  t_f
+    );
+
+
+  
+
+   
+
     return 0;
 }
 
@@ -64,7 +168,7 @@ static const struct proc_ops mpu6050_proc_ops = {
 // --------------------------------------------------------------------
 
 // ATENÇÃO: ajuste conforme o seu hardware (i2c-0 -> 0, i2c-1 -> 1, etc.)
-#define MPU6050_I2C_BUS   2      /* por exemplo, i2c-1 */
+#define MPU6050_I2C_BUS   2      /* por exemplo, i2c-2 */
 #define MPU6050_I2C_ADDR  0x68   /* endereço padrão do MPU6050 */
 
 static struct i2c_client *mpu_client;
@@ -77,44 +181,24 @@ static struct task_struct *mpu_thread;
 static int mpu6050_hw_init(void)
 {
     int ret;
-
     /* 0x6B <- 0x00 : tira do sleep (PWR_MGMT_1) */
     ret = i2c_smbus_write_byte_data(mpu_client, 0x6B, 0x00);
-    if (ret < 0) {
-        pr_err("mpu6050: falha ao escrever PWR_MGMT_1 (0x6B), ret=%d\n", ret);
-        return ret;
-    }
-
     /* 0x1C <- 0x00 : ACCEL_CONFIG = ±2g */
     ret = i2c_smbus_write_byte_data(mpu_client, 0x1C, 0x00);
-    if (ret < 0) {
-        pr_err("mpu6050: falha ao escrever ACCEL_CONFIG (0x1C), ret=%d\n", ret);
-        return ret;
-    }
-
     /* 0x1B <- 0x00 : GYRO_CONFIG = ±250°/s */
     ret = i2c_smbus_write_byte_data(mpu_client, 0x1B, 0x00);
-    if (ret < 0) {
-        pr_err("mpu6050: falha ao escrever GYRO_CONFIG (0x1B), ret=%d\n", ret);
-        return ret;
-    }
 
-    pr_info("mpu6050: configurado (sleep off, accel ±2g, gyro ±250dps)\n");
-    return 0;
+   if (ret < 0) {
+        pr_err("mpu6050: falha ao escrever" );
+    }else  pr_info("mpu6050: configurado (sleep off, accel ±2g, gyro ±250dps)\n");
+    return ret;
 }
 
 
+
+
 // Lê acelerômetro e giroscópio de uma vez (14 bytes a partir de 0x3B)
-static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
-                                   int16_t *gx, int16_t *gy, int16_t *gz)
-{
-    int ret;
-    u8 buf[14];
-
-    if (!mpu_client)
-        return -ENODEV;
-
-    /*
+   /*
      * Layout dos 14 bytes a partir de 0x3B:
      *  0: ACCEL_XOUT_H
      *  1: ACCEL_XOUT_L
@@ -131,22 +215,36 @@ static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
      * 12: GYRO_ZOUT_H
      * 13: GYRO_ZOUT_L
      */
+
+static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
+                                   int16_t *gx, int16_t *gy, int16_t *gz,int16_t *temperature )
+{
+    int ret;
+    u8 buf[14];
+
+    if (!mpu_client)
+        return -ENODEV;
+
+   
     ret = i2c_smbus_read_i2c_block_data(mpu_client, 0x3B,
                                         sizeof(buf), buf);
     if (ret < 0) {
         pr_err("mpu6050: falha ao ler accel/gyro, ret=%d\n", ret);
         return ret;
+
     }
 
     *ax = (int16_t)((buf[0] << 8) | buf[1]);
     *ay = (int16_t)((buf[2] << 8) | buf[3]);
     *az = (int16_t)((buf[4] << 8) | buf[5]);
 
+    *temperature= (int16_t)((buf[6] << 8) | buf[7]);
+
     *gx = (int16_t)((buf[8]  << 8) | buf[9]);
     *gy = (int16_t)((buf[10] << 8) | buf[11]);
     *gz = (int16_t)((buf[12] << 8) | buf[13]);
 
-    return 0;
+    return ret;
 }
 
 // --------------------------------------------------------------------
@@ -156,7 +254,7 @@ static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
 
 
 static int mpu6050_thread_fn(void *data){
-    int16_t ax, ay, az, gx, gy, gz;
+    int16_t ax, ay, az, gx, gy, gz,temperature;
     int ret;
     int local_interval;
 
@@ -169,16 +267,14 @@ static int mpu6050_thread_fn(void *data){
             break;
         }
 
-        ret = mpu6050_read_accel_gyro(&ax, &ay, &az, &gx, &gy, &gz);
+        ret = mpu6050_read_accel_gyro(&ax, &ay, &az, &gx, &gy, &gz,&temperature );
         if (ret < 0) {
             pr_err("mpu6050_thread: erro na leitura: %d\n", ret);
             // aqui você decide: break, continue, ou um retry simples
             continue;
         }
 
-        // Log opcional
-        //pr_info("mpu6050: ACC [%6d %6d %6d]  GYR [%6d %6d %6d]\n",ax, ay, az, gx, gy, gz);
-
+ 
         // Atualiza valores para o /proc
         last_ax = ax;
         last_ay = ay;
@@ -186,6 +282,7 @@ static int mpu6050_thread_fn(void *data){
         last_gx = gx;
         last_gy = gy;
         last_gz = gz;
+        last_temp = temperature;
 
         // Evita intervalo zero ou negativo
         local_interval = (interval_ms > 0) ? interval_ms : 100;
@@ -254,6 +351,18 @@ static int __init mpu6050_module_init(void)
     }
 
 
+    {
+    struct sched_param param;
+    param.sched_priority = 50;  // prioridade RT (1 a 99)
+
+    ret = sched_setscheduler(mpu_thread, SCHED_FIFO, &param);
+    if (ret != 0) {
+        printk("Falha ao definir SCHED_FIFO\n");
+    } else {
+        printk("Thread com prioridade SCHED_FIFO = 50\n");
+    }
+}
+
    // Cria entrada em /proc
     mpu6050_proc_entry = proc_create("mpu6050", 0444, NULL, &mpu6050_proc_ops);
     if (!mpu6050_proc_entry) {
@@ -268,6 +377,9 @@ static int __init mpu6050_module_init(void)
 
 
     pr_info("mpu6050_module: módulo carregado com sucesso\n");
+    pr_info("mpu6050_module: just do 'cat /proc/mpu6050'\n");
+
+
     return 0;
 }
 
