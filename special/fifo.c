@@ -13,11 +13,13 @@
 #define MPU_FIFO_SIZE 128
 
 /* FIFO de samples */
-static DECLARE_KFIFO(mpu_fifo, struct mpu_sample, MPU_FIFO_SIZE);
+static DECLARE_KFIFO(mpu_fifo, struct mpu_sample, MPU_FIFO_SIZE) __maybe_unused;
+
+
 
 /* Sincronização */
-static spinlock_t mpu_fifo_lock;
-static wait_queue_head_t mpu_wq;
+static spinlock_t mpu_fifo_lock __maybe_unused;;
+static wait_queue_head_t mpu_wq __maybe_unused;;
 
 int mpu_fifo_init(void)
 {

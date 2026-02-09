@@ -24,7 +24,7 @@
 #include <linux/math64.h>
 #include <linux/kernel.h>
 
-#include "fifo.h"
+#include "special/fifo.h"
 
 
 MODULE_LICENSE("GPL");
