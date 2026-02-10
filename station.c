@@ -20,7 +20,7 @@
 
 #include <linux/sched.h>
 #include <linux/sched/rt.h>
-#include <uapi/linux/sched/types.h>  // para struct sched_param
+#include <uapi/linux/sched/types.h>  // for struct sched_param
 
 #include <linux/math64.h>
 #include <linux/kernel.h>
@@ -35,10 +35,10 @@ MODULE_DESCRIPTION("MPU6050 I2C kthread");
 MODULE_VERSION("1.0");
 
 // --------------------------------------------------------------------
-// Parâmetros de módulo
+// Module parameters
 // --------------------------------------------------------------------
 
-static int interval_ms = 500;   // período entre leituras
+static int interval_ms = 500;   // period between readings
 
 module_param(interval_ms, int, 0644);
 MODULE_PARM_DESC(interval_ms, "Intervalo entre leituras em ms");
@@ -53,7 +53,7 @@ static int16_t last_temp;
 static struct proc_dir_entry *mpu6050_proc_entry;
 static struct proc_dir_entry *mpu6050_fifo_proc_entry;
 
-//converte os valores
+// convert the values
 
 static void split_fixed(long val, long *int_part, long *frac_part){
     long sign = 1;
@@ -61,11 +61,11 @@ static void split_fixed(long val, long *int_part, long *frac_part){
 
     if (absval < 0) {
         sign = -1;
-        absval = -absval;      // valor absoluto
+        absval = -absval;      // absolute value
     }
 
-    *int_part  = (absval / 1000) * sign;  // parte inteira com sinal
-    *frac_part =  absval % 1000;          // fração sempre positiva
+    *int_part  = (absval / 1000) * sign;  // integer part with sign
+    *frac_part =  absval % 1000;          // fraction always positive
 }
 
 
@@ -77,15 +77,15 @@ static void mpu6050_convert(
     long *ax_ms2, long *ay_ms2, long *az_ms2,
     long *gx_dps, long *gy_dps, long *gz_dps,
     long *temp_mC){
-    /* ----- temperatura (°C em milicelsius) ----- */
+    /* ----- temperature (°C in millicelsius) ----- */
     *temp_mC = (long)temp_raw * 1000 / 340 + 36530;
 
-    /* ----- acelerômetro: mm/s² (depois divida por 1000 para obter m/s²) ----- */
+    /* ----- accelerometer: mm/s² (then divide by 1000 to get m/s²) ----- */
     *ax_ms2 = (long)ax_raw * 9807 / 16384;
     *ay_ms2 = (long)ay_raw * 9807 / 16384;
     *az_ms2 = (long)az_raw * 9807 / 16384;
 
-    /* ----- giroscópio: mdps (milideg/s) ----- */
+    /* ----- gyroscope: mdps (millideg/s) ----- */
     *gx_dps = (long)gx_raw * 1000 / 131;
     *gy_dps = (long)gy_raw * 1000 / 131;
     *gz_dps = (long)gz_raw * 1000 / 131;
@@ -106,12 +106,12 @@ static int mpu6050_proc_show(struct seq_file *m, void *v)
     long gz_i, gz_f;
     long t_i,  t_f;
 
-    u_long acc_mag;       // módulo da aceleração em mm/s²
+    u_long acc_mag;       // acceleration magnitude in mm/s²
     long accm_i, accm_f;
 
     mpu6050_convert(last_ax,last_ay,last_az,last_gx,last_gy,last_gz,last_temp,&ax, &ay, &az,&gx, &gy, &gz,&t);
 
- /* Quebra cada valor em inteiro + fração (3 casas decimais) */
+ /* Split each value into integer + fraction (3 decimal places) */
     split_fixed(ax, &ax_i, &ax_f);
     split_fixed(ay, &ay_i, &ay_f);
     split_fixed(az, &az_i, &az_f);
@@ -214,21 +214,21 @@ static const struct proc_ops mpu6050_fifo_proc_ops = {
 // I2C / MPU6050
 // --------------------------------------------------------------------
 
-// ATENÇÃO: ajuste conforme o seu hardware (i2c-0 -> 0, i2c-1 -> 1, etc.)
-#define MPU6050_I2C_BUS   2      /* por exemplo, i2c-2 */
-#define MPU6050_I2C_ADDR  0x68   /* endereço padrão do MPU6050 */
+// WARNING: adjust according to your hardware (i2c-0 -> 0, i2c-1 -> 1, etc.)
+#define MPU6050_I2C_BUS   2      /* for example, i2c-2 */
+#define MPU6050_I2C_ADDR  0x68   /* MPU6050 default address */
 
 static struct i2c_client *mpu_client;
 static struct task_struct *mpu_thread;
 
-// Inicializa registradores do MPU6050:
-//  - tira do sleep (0x6B = 0x00)
+// Initialize MPU6050 registers:
+//  - wake from sleep (0x6B = 0x00)
 //  - ACCEL_CONFIG (0x1C = 0x00) -> ±2g
 //  - GYRO_CONFIG  (0x1B = 0x00) -> ±250 °/s
 static int mpu6050_hw_init(void)
 {
     int ret;
-    /* 0x6B <- 0x00 : tira do sleep (PWR_MGMT_1) */
+    /* 0x6B <- 0x00 : wake from sleep (PWR_MGMT_1) */
     ret = i2c_smbus_write_byte_data(mpu_client, 0x6B, 0x00);
     /* 0x1C <- 0x00 : ACCEL_CONFIG = ±2g */
     ret = i2c_smbus_write_byte_data(mpu_client, 0x1C, 0x00);
@@ -272,7 +272,7 @@ static int mpu6050_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
 }
 
 // --------------------------------------------------------------------
-// Thread de leitura
+// Read thread
 // --------------------------------------------------------------------
 
 static int mpu6050_thread_fn(void *data){
@@ -294,12 +294,12 @@ static int mpu6050_thread_fn(void *data){
         ret = mpu6050_read_accel_gyro(&ax, &ay, &az, &gx, &gy, &gz,&temperature );
         if (ret < 0) {
             pr_err("mpu6050_thread: erro na leitura: %d\n", ret);
-            // aqui você decide: break, continue, ou um retry simples
+            // decide here: break, continue, or a simple retry
             continue;
         }
 
  
-        // Atualiza valores para o /proc
+        // Update values for /proc
         last_ax = ax;
         last_ay = ay;
         last_az = az;
@@ -321,7 +321,7 @@ static int mpu6050_thread_fn(void *data){
         if (ret)
             pr_warn("mpu6050_thread: fifo cheio, amostra descartada\n");
 
-        // Evita intervalo zero ou negativo
+        // Avoid zero or negative interval
         local_interval = (interval_ms > 0) ? interval_ms : 100;
 
         if (kthread_should_stop())
@@ -335,7 +335,7 @@ static int mpu6050_thread_fn(void *data){
 }
 
 // --------------------------------------------------------------------
-// Init / Exit do módulo
+// Module init / exit
 // --------------------------------------------------------------------
 
 static int __init mpu6050_module_init(void)
@@ -345,7 +345,7 @@ static int __init mpu6050_module_init(void)
 
     pr_info("mpu6050_module: init (interval_ms=%d)\n", interval_ms);
 
-    // Pega adapter I2C
+    // Get I2C adapter
     adap = i2c_get_adapter(MPU6050_I2C_BUS);
     if (!adap) {
         pr_err("mpu6050: não conseguiu obter adapter I2C %d\n",
@@ -353,7 +353,7 @@ static int __init mpu6050_module_init(void)
         return -ENODEV;
     }
 
-    // Cria cliente "dummy" para o MPU6050
+    // Create a "dummy" client for the MPU6050
     mpu_client = i2c_new_dummy_device(adap, MPU6050_I2C_ADDR);
     i2c_put_adapter(adap);
 
@@ -365,7 +365,7 @@ static int __init mpu6050_module_init(void)
         return ret;
     }
 
-    // Configura o MPU6050 (equivalente aos i2cset)
+    // Configure the MPU6050 (equivalent to i2cset)
     ret = mpu6050_hw_init();
     if (ret < 0) {
         pr_err("mpu6050: falha na inicialização de hardware\n");
@@ -382,7 +382,7 @@ static int __init mpu6050_module_init(void)
         return ret;
     }
 
-    // Cria thread de leitura
+    // Create read thread
     mpu_thread = kthread_run(mpu6050_thread_fn, NULL, "mpu6050_thread");
     if (IS_ERR(mpu_thread)) {
         ret = PTR_ERR(mpu_thread);
@@ -396,7 +396,7 @@ static int __init mpu6050_module_init(void)
 
     {
     struct sched_param param;
-    param.sched_priority = 50;  // prioridade RT (1 a 99)
+    param.sched_priority = 50;  // RT priority (1 to 99)
 
     ret = sched_setscheduler(mpu_thread, SCHED_FIFO, &param);
     if (ret != 0) {
@@ -406,11 +406,11 @@ static int __init mpu6050_module_init(void)
     }
 }
 
-   // Cria entrada em /proc
+   // Create /proc entry
     mpu6050_proc_entry = proc_create("mpu6050", 0444, NULL, &mpu6050_proc_ops);
     if (!mpu6050_proc_entry) {
         pr_err("mpu6050: falha ao criar entrada /proc/mpu6050\n");
-        // se quiser fazer tudo certinho, desfaz o que já foi feito:
+        // if you want to do everything properly, undo what was done:
         kthread_stop(mpu_thread);
         mpu_thread = NULL;
         mpu_fifo_exit();
@@ -455,7 +455,7 @@ static void __exit mpu6050_module_exit(void)
         mpu6050_fifo_proc_entry = NULL;
     }
 
-    // Para thread
+    // Stop thread
     if (mpu_thread) {
         kthread_stop(mpu_thread);
         mpu_thread = NULL;
@@ -463,7 +463,7 @@ static void __exit mpu6050_module_exit(void)
 
     mpu_fifo_exit();
 
-    // Libera dispositivo I2C
+    // Release I2C device
     if (mpu_client) {
         i2c_unregister_device(mpu_client);
         mpu_client = NULL;

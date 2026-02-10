@@ -8,16 +8,16 @@
 #include <unistd.h>
  
  /*
- to compile: 
+ to compile:
  make -f Makefile.pitch_roll
- 
+
    run on board /bin/angulo to download from wsl to linux board
- 
+
  [root@luckfox root]# /root/pitch_roll
  ACC: ax=6.955 ay=-3.857 az=6.126 m/s2
- Pitch: -43.85 graus
- Roll : -32.19 graus
- 
+ Pitch: -43.85 degrees
+ Roll : -32.19 degrees
+
    */
  
    void calc_pitch_roll_ms2(float ax, float ay, float az,
@@ -71,9 +71,9 @@
  
         buffer[bytes] = '\0';
  
-        /* Lê só o início da linha:
+        /* Read only the start of the line:
            "ACC: 7.740 -1.817 6.045 m/s2 ..."
-           O sscanf com "%f %f %f" funciona porque ele para nos espaços.
+           The sscanf with "%f %f %f" works because it stops at spaces.
         */
         if (sscanf(buffer, "ACC: %f %f %f", &ax, &ay, &az) != 3) {
             fprintf(stderr, "Erro ao ler ACC de /proc/mpu6050_fifo\n");
