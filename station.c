@@ -38,7 +38,7 @@ MODULE_VERSION("1.0");
 // Module parameters
 // --------------------------------------------------------------------
 
-static int interval_ms = 500;   // period between readings
+static int interval_ms = 1;   // period between readings
 
 module_param(interval_ms, int, 0644);
 MODULE_PARM_DESC(interval_ms, "Intervalo entre leituras em ms");

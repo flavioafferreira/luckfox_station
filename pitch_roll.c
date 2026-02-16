@@ -6,12 +6,26 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
- 
 
-#include <unistd.h>
+#include <pthread.h>
+#include <sched.h>
+#include <sys/mman.h>
+
+#include <stdatomic.h>
+
 #include <termios.h>
 #include <poll.h>
 #include <ctype.h>
+
+
+#define ON  1
+#define OFF 0
+
+#define TESTS OFF
+
+static _Atomic float g_pitch_deg = 0.0f;
+static _Atomic float g_roll_deg  = 0.0f;
+
 
  /*
  to compile:
@@ -26,6 +40,24 @@
 
    */
  
+static inline void ts_add_ns(struct timespec *t, long ns)
+{
+    t->tv_nsec += ns;
+    while (t->tv_nsec >= 1000000000L) { t->tv_nsec -= 1000000000L; t->tv_sec++; }
+}
+
+static void set_rt(pthread_t th, int prio)
+{
+    struct sched_param sp = { .sched_priority = prio };
+    if (pthread_setschedparam(th, SCHED_FIFO, &sp) != 0) {
+        perror("pthread_setschedparam");
+    }
+}
+
+
+
+
+   //SERIAL
 int serial_open(const char *device)
 {
     int fd = open(device, O_RDWR | O_NOCTTY | O_SYNC);
@@ -177,7 +209,157 @@ void serial_send(int fd, const char *cmd)
      *roll_deg = atan2f(ay, az) * 180.0f / (float)M_PI;
  }
  
- int main(void)
+
+// SERIAL END
+
+//THREADS
+
+static void *sensor_thread(void *arg)
+{
+
+    int fd;
+     float ax, ay, az;
+     float pitch, roll;
+    char buffer[128];
+    const struct timespec interval = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
+ 
+    fd = open("/proc/mpu6050_fifo", O_RDONLY | O_NONBLOCK);
+    if (fd < 0) {
+        perror("open /proc/mpu6050_fifo");
+     }
+
+
+    (void)arg;
+    set_rt(pthread_self(), 80);
+
+    // TODO: abrir /proc/mpu6050_fifo e ler a cada 1ms (ou block/poll)
+    // TODO: aplicar filtro (complementar) e atualizar g_pitch_deg/g_roll_deg
+
+    struct timespec next;
+    clock_gettime(CLOCK_MONOTONIC, &next);
+
+    for (;;) {
+        ts_add_ns(&next, 1000000L); // 1ms
+
+        // ... ler mpu + calcular pitch/roll filtrado ...
+        // atomic_store(&g_pitch_deg, pitch);
+        // atomic_store(&g_roll_deg, roll);
+
+        ssize_t bytes;
+
+        bytes = pread(fd, buffer, sizeof(buffer) - 1, 0);
+
+        if (bytes < 0) {
+            if (errno != EAGAIN) {
+                fprintf(stderr, "Erro ao ler /proc/mpu6050_fifo: %s\n",
+                        strerror(errno));
+                close(fd);
+                
+            }
+            nanosleep(&interval, NULL);
+            continue;
+        }
+ 
+        if (bytes == 0) {
+            nanosleep(&interval, NULL);
+            continue;
+        }
+ 
+        buffer[bytes] = '\0';
+ 
+        /* Read only the start of the line:
+           "ACC: 7.740 -1.817 6.045 m/s2 ..."
+           The sscanf with "%f %f %f" works because it stops at spaces.
+        */
+        if (sscanf(buffer, "ACC: %f %f %f", &ax, &ay, &az) != 3) {
+            fprintf(stderr, "Erro ao ler ACC de /proc/mpu6050_fifo\n");
+            nanosleep(&interval, NULL);
+            continue;
+        }
+ 
+        calc_pitch_roll_ms2(ax, ay, az, &pitch, &roll);
+
+        atomic_store(&g_pitch_deg, pitch);
+        atomic_store(&g_roll_deg, roll);
+
+
+        //printf("ACC: ax=%.3f ay=%.3f az=%.3f m/s2\n", ax, ay, az);
+        //printf("Pitch: %.2f graus\n", pitch);
+        //printf("Roll : %.2f graus\n", roll);
+
+        //nanosleep(&interval, NULL);
+
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
+    }
+    return NULL;
+}
+
+static void *control_thread(void *arg)
+{
+
+    int serial_fd = serial_open("/dev/ttyS3");
+      if (serial_fd < 0){
+     }
+
+
+    (void)arg;
+    set_rt(pthread_self(), 90);
+
+    int ok1 = serial_send_wait_ack_retry(serial_fd, "ABC1 S 16*1\n", "ABC1", 5, 3);
+    if (ok1 != 1) fprintf(stderr, "ABC1 não confirmou (ret=%d)\n", ok1);
+
+
+
+    // TODO: abrir UART /dev/ttyS3 uma vez e manter aberto
+    // TODO: enviar "S ..." com ACK aqui (uma vez)
+
+    struct timespec next;
+    clock_gettime(CLOCK_MONOTONIC, &next);
+
+    for (;;) {
+        ts_add_ns(&next, 2000000L); // 2ms => 500Hz (ajuste para 4ms se quiser 250Hz)
+
+        float pitch = atomic_load(&g_pitch_deg);
+        float roll  = atomic_load(&g_roll_deg);
+
+        //printf("ACC: ax=%.3f ay=%.3f az=%.3f m/s2\n", ax, ay, az);
+        printf("Pitch: %.2f graus\n", pitch);
+        printf("Roll : %.2f graus\n", roll);
+
+
+
+
+        // TODO: PID com dt fixo (2ms), saturação, etc.
+        // int rpmX = ...
+        // int rpmY = ...
+        // Enviar V (SEM esperar ACK no loop)
+        // write(serial_fd, cmd, ...);
+
+    // exemplo fixo
+    //serial_send(serial_fd, "ABC1 S 16*1\n");
+    //esperar resposta  ABC11 se OK ou ABC10 SE FALHOU
+    //usleep(50000); // 50ms
+
+
+    //SEND COMMAND TO MOTOR
+    //serial_send(serial_fd, "ABC2 V 33 -33*1\n");
+  
+
+    //int ok2 = serial_send_wait_ack_retry(serial_fd, "ABC2 V 33 -33*1\n", "ABC2", 5, 3);
+    //if (ok2 != 1) fprintf(stderr, "ABC2 não confirmou (ret=%d)\n", ok2);
+
+
+
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
+    }
+
+    close(serial_fd);
+    return NULL;
+}
+
+
+
+ void tests(void)
  {
     int fd;
      float ax, ay, az;
@@ -188,13 +370,13 @@ void serial_send(int fd, const char *cmd)
     fd = open("/proc/mpu6050_fifo", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         perror("open /proc/mpu6050_fifo");
-         return 1;
+         //return 1;
      }
  
 
    int serial_fd = serial_open("/dev/ttyS3");
     if (serial_fd < 0){
-        return -1;
+        //return -1;
     }
 
     // exemplo fixo
@@ -221,7 +403,7 @@ void serial_send(int fd, const char *cmd)
                 fprintf(stderr, "Erro ao ler /proc/mpu6050_fifo: %s\n",
                         strerror(errno));
                 close(fd);
-                return 1;
+                
             }
             nanosleep(&interval, NULL);
             continue;
@@ -254,3 +436,24 @@ void serial_send(int fd, const char *cmd)
     }
  }
 
+
+ int main(void) {
+
+
+    if(TESTS)tests();
+
+      // evita page faults durante execução RT
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) {
+        perror("mlockall");
+    }
+
+    pthread_t th_s, th_c;
+    pthread_create(&th_s, NULL, sensor_thread, NULL);
+    pthread_create(&th_c, NULL, control_thread, NULL);
+
+    pthread_join(th_s, NULL);
+    pthread_join(th_c, NULL);
+
+    return 0;
+
+ }
