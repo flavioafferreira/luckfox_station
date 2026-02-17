@@ -54,9 +54,6 @@ static void set_rt(pthread_t th, int prio)
     }
 }
 
-
-
-
    //SERIAL
 int serial_open(const char *device)
 {
@@ -186,18 +183,12 @@ static int serial_send_wait_ack_retry(
     return -1; // estourou tentativas (timeout/resposta inválida)
 }
 
-
-
-
-
 void serial_send(int fd, const char *cmd)
 {
     write(fd, cmd, strlen(cmd));
 }
 
-   void calc_pitch_roll_ms2(float ax, float ay, float az,
-                          float *pitch_deg, float *roll_deg)
- {
+   void calc_pitch_roll_ms2(float ax, float ay, float az, float *pitch_deg, float *roll_deg) {
      float denom = sqrtf(ay*ay + az*az);
  
      if (denom == 0.0f) {
@@ -209,7 +200,6 @@ void serial_send(int fd, const char *cmd)
      *roll_deg = atan2f(ay, az) * 180.0f / (float)M_PI;
  }
  
-
 // SERIAL END
 
 //THREADS
@@ -221,7 +211,7 @@ static void *sensor_thread(void *arg)
      float ax, ay, az;
      float pitch, roll;
     char buffer[128];
-    const struct timespec interval = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
+    const struct timespec interval = { .tv_sec = 0, .tv_nsec = 1 * 1000 * 1000 };
  
     fd = open("/proc/mpu6050_fifo", O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
@@ -279,6 +269,8 @@ static void *sensor_thread(void *arg)
  
         calc_pitch_roll_ms2(ax, ay, az, &pitch, &roll);
 
+
+        //deploy here mutex in order to supply the variables at the same time.
         atomic_store(&g_pitch_deg, pitch);
         atomic_store(&g_roll_deg, roll);
 
@@ -308,7 +300,7 @@ static void *control_thread(void *arg)
     int ok1 = serial_send_wait_ack_retry(serial_fd, "ABC1 S 16*1\n", "ABC1", 5, 3);
     if (ok1 != 1) fprintf(stderr, "ABC1 não confirmou (ret=%d)\n", ok1);
 
-
+    //serial_send(serial_fd, "ABC2 V 10 -10*1\n");
 
     // TODO: abrir UART /dev/ttyS3 uma vez e manter aberto
     // TODO: enviar "S ..." com ACK aqui (uma vez)
@@ -317,14 +309,14 @@ static void *control_thread(void *arg)
     clock_gettime(CLOCK_MONOTONIC, &next);
 
     for (;;) {
-        ts_add_ns(&next, 2000000L); // 2ms => 500Hz (ajuste para 4ms se quiser 250Hz)
+        ts_add_ns(&next, 1000000L); // 100ms => 500Hz (ajuste para 4ms se quiser 250Hz)
 
         float pitch = atomic_load(&g_pitch_deg);
         float roll  = atomic_load(&g_roll_deg);
 
         //printf("ACC: ax=%.3f ay=%.3f az=%.3f m/s2\n", ax, ay, az);
-        printf("Pitch: %.2f graus\n", pitch);
-        printf("Roll : %.2f graus\n", roll);
+        //printf("Pitch: %.2f graus\n", pitch);
+        //printf("Roll : %.2f graus\n", roll);
 
 
 
@@ -344,6 +336,11 @@ static void *control_thread(void *arg)
     //SEND COMMAND TO MOTOR
     //serial_send(serial_fd, "ABC2 V 33 -33*1\n");
   
+
+
+    char output_string[40];
+    sprintf(output_string,"ABC2 V %3.0f %3.0f*1\n",pitch , roll);
+    serial_send(serial_fd, output_string);
 
     //int ok2 = serial_send_wait_ack_retry(serial_fd, "ABC2 V 33 -33*1\n", "ABC2", 5, 3);
     //if (ok2 != 1) fprintf(stderr, "ABC2 não confirmou (ret=%d)\n", ok2);
@@ -435,7 +432,6 @@ static void *control_thread(void *arg)
         nanosleep(&interval, NULL);
     }
  }
-
 
  int main(void) {
 
