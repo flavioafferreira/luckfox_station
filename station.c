@@ -318,8 +318,11 @@ static int mpu6050_thread_fn(void *data){
         sample.gz = gz;
         sample.temp_mC = (s32)temp_mC;
         ret = mpu_fifo_push(&sample);
-        if (ret)
-            pr_warn("mpu6050_thread: fifo cheio, amostra descartada\n");
+        if (ret){
+            //pr_warn("mpu6050_thread: fifo cheio, amostra descartada\n");
+            pr_warn("mpu6050_thread: fifo re-init\n");
+            mpu_fifo_init();
+        }
 
         // Avoid zero or negative interval
         local_interval = (interval_ms > 0) ? interval_ms : 100;

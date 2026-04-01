@@ -289,6 +289,14 @@ static void *sensor_thread(void *arg)
 static void *control_thread(void *arg)
 {
 
+   float derivative=0.1;
+   float integrative=1;
+   float feedback=1;
+
+    float proportional=derivative*feedback+integrative;
+
+    int imprimir=0;
+
     int serial_fd = serial_open("/dev/ttyS3");
       if (serial_fd < 0){
      }
@@ -314,11 +322,14 @@ static void *control_thread(void *arg)
         float pitch = atomic_load(&g_pitch_deg);
         float roll  = atomic_load(&g_roll_deg);
 
-        //printf("ACC: ax=%.3f ay=%.3f az=%.3f m/s2\n", ax, ay, az);
-        //printf("Pitch: %.2f graus\n", pitch);
-        //printf("Roll : %.2f graus\n", roll);
 
-
+        if (imprimir==1000){
+         //printf("ACC: ax=%.3f ay=%.3f az=%.3f m/s2\n", ax, ay, az);
+         printf("Pitch: %.2f graus  ", pitch);
+         printf("Roll : %.2f graus\n", roll);
+         imprimir=0;
+        }
+        imprimir++;
 
 
         // TODO: PID com dt fixo (2ms), saturação, etc.
@@ -336,10 +347,9 @@ static void *control_thread(void *arg)
     //SEND COMMAND TO MOTOR
     //serial_send(serial_fd, "ABC2 V 33 -33*1\n");
   
-
-
+    
     char output_string[40];
-    sprintf(output_string,"ABC2 V %3.0f %3.0f*1\n",pitch , roll);
+    sprintf(output_string,"ABC2 V %3.0f %3.0f*1\n",pitch*proportional , roll*proportional);
     serial_send(serial_fd, output_string);
 
     //int ok2 = serial_send_wait_ack_retry(serial_fd, "ABC2 V 33 -33*1\n", "ABC2", 5, 3);
