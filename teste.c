@@ -13,6 +13,11 @@ typedef enum{
 }Command;
 #undef X
 
+/* RESULTADO
+typedef enum{
+   COMMAND_TODAY, COMMAND_HELP, COMMAND_SETUP, COMMAND_TEST,
+}Command;
+*/
 
 void command_handle(Command cmd){
 
@@ -27,6 +32,15 @@ void command_handle(Command cmd){
 #undef X
 
 }
+
+/*
+//RESULTADO
+gcc -E -P teste.c | grep case
+ case COMMAND_TODAY: {printf("%s\n\r","CommandToday"); }break; 
+ case COMMAND_HELP: {printf("%s\n\r","CommandHelp"); }break; 
+ case COMMAND_SETUP: {printf("%s\n\r","CommandSetup"); }break;
+ case COMMAND_TEST: {printf("%s\n\r","CommandTest"); }break;
+*/
 
 
 int main(void){
